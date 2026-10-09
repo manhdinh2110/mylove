@@ -71,7 +71,7 @@ window.LOVE_DATA = {
   days: [
     {
       label: "Ngày hẹn hò",
-      date: "2026-10-10",
+      date: "2026-10-17",
       theme: "Một ngày yêu giữa lòng Sài Gòn",
       summary: "Phở sáng, dạo phố Pháp cổ, bánh xèo trưa, trốn nắng ở bảo tàng, buýt sông ngắm hoàng hôn, tối ốc và đi dạo phố đi bộ.",
       stops: [
