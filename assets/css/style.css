@@ -717,3 +717,7 @@ body.editing .music { bottom: 88px; }
 
 /* Đã đồng bộ Firebase → không cần chia sẻ link / tải file */
 .cloud .editbar [data-act="share"], .cloud .editbar [data-act="download"], .cloud .editbar .more { display: none; }
+
+/* Phát ngầm: khung YouTube vẫn chạy nhưng nằm ngoài màn hình (YouTube cần khung ≥ 200px mới chịu phát) */
+.music.bg[data-state="closed"] .music__panel { display: flex; position: fixed; left: -10000px; top: 0; width: 320px; opacity: 0; pointer-events: none; }
+.music.bg[data-state="closed"] .music__video { display: block; }

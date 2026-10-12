@@ -772,6 +772,7 @@
 
     const setState = st => {
       box.dataset.state = st;
+      if (st !== "closed") box.classList.remove("bg"); // mở trình phát → thôi chạy ngầm
       $("#musicFab").setAttribute("aria-expanded", st !== "closed");
       $("#musicMin").innerHTML = icon(st === "mini" ? "up" : "down");
       $("#musicMin").setAttribute("aria-label", st === "mini" ? "Mở rộng trình phát" : "Thu gọn trình phát");
@@ -805,7 +806,8 @@
       $("#musicVideo").hidden = k !== "yt";
     };
 
-    async function playIndex(i) {
+    // bg = phát ngầm: không bật khung video lên, chỉ nút nốt nhạc nhảy nhịp
+    async function playIndex(i, bg = false) {
       const x = songs()[i]; if (!x) return;
       const src = parseSource(x.url);
       idx = i; started = true;
@@ -815,7 +817,10 @@
         toast(src ? `Link của "${x.title}" chưa đúng — cần link YouTube hoặc file .mp3` : `"${x.title}" chưa có link — bấm Dán link nhé`);
         return;
       }
-      if (box.dataset.state === "closed") setState(src.kind === "yt" ? "mini" : "closed");
+      if (box.dataset.state === "closed") {
+        if (bg) box.classList.add("bg");
+        else setState(src.kind === "yt" ? "mini" : "closed");
+      }
       kind = src.kind; stopOther(kind);
       if (kind === "audio") {
         if (audio.src !== new URL(src.src, location.href).href) audio.src = src.src;
@@ -1233,8 +1238,8 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
     const loginSong = afterLogin && S().music ? data.music.songs.findIndex(x => (x.title || "").toLowerCase().includes(afterLogin.toLowerCase())) : -1;
     if (loginSong >= 0) {
       const evs = ["pointerdown", "keydown"];
-      const go = () => { evs.forEach(ev => document.removeEventListener(ev, go)); if (!player.playing) player.playIndex(loginSong); };
-      player.playIndex(loginSong);
+      const go = () => { evs.forEach(ev => document.removeEventListener(ev, go)); if (!player.playing) player.playIndex(loginSong, true); };
+      player.playIndex(loginSong, true);
       // Trình duyệt thường chặn tự phát có tiếng → phát ngay ở lần chạm đầu tiên
       if (player.playable().includes(loginSong)) evs.forEach(ev => document.addEventListener(ev, go));
       setTimeout(() => { if (!player.playing && player.playable().includes(loginSong)) toast(`♪ Chạm để nghe “${data.music.songs[loginSong].title}”`, { label: "Phát", fn: go }, 9000); }, 1800);
