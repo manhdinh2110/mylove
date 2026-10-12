@@ -91,7 +91,7 @@
     budget: true, checklist: true, tips: true,
     cost: true, perPerson: false, details: true, note: true, love: true, mapBtns: true, compact: false,
     clock24: true, font: "m", accent: "rose",
-    surprise: false, hearts: false, flowers: true,
+    favorites: true, surprise: false, hearts: false, flowers: true,
     music: true, musicPrompt: true, letterMusic: true, shuffle: false, repeat: true
   };
   const ACCENTS = {
@@ -109,6 +109,7 @@
       ["showLetter", "Thư tay", "Phong bì nhỏ, chạm để mở"],
       ["filters", "Bộ lọc loại hoạt động"],
       // ["budget", "Mục Ngân sách"], // tạm ẩn khỏi Cài đặt
+      ["favorites", "Mục Sổ tay về em", "Những món em thích / không thích"],
       ["checklist", "Mục Chuẩn bị"],
       ["tips", "Mục Lưu ý"]
     ]},
@@ -149,6 +150,10 @@
     // Bài nào data.js đã gắn link (vd file music/*.mp3) thì luôn dùng link đó, kể cả khi bản trên mạng khác
     (DEFAULT.music?.songs || []).forEach(f => { if (!f.url) return; const x = d.music.songs.find(y => y.title === f.title); if (x) x.url = f.url; });
     d.checklist = Array.isArray(d.checklist) ? d.checklist : [];
+    // Bản trên mạng cũ chưa có mục sở thích → lấy từ data.js
+    if (!d.favorites || typeof d.favorites !== "object") d.favorites = clone(DEFAULT.favorites || {});
+    ["likes", "dislikes"].forEach(k => { d.favorites[k] = Array.isArray(d.favorites[k]) ? d.favorites[k].filter(x => x && x.text) : []; });
+    d.favorites.note ??= "";
     d.tips = Array.isArray(d.tips) ? d.tips : [];
     d.days.forEach(day => {
       day.stops = day.stops.filter(Boolean);
@@ -490,13 +495,48 @@
       `<button class="add-card edit-only" type="button" data-act="add-tip">${icon("plus")} Thêm lưu ý</button>`;
   }
 
+  /* ---------- Sổ tay về em ---------- */
+  const FAV_LISTS = [
+    { k: "likes", title: "Em thích", cls: "yes", mark: "♥", empty: "Chưa ghi món nào" },
+    { k: "dislikes", title: "Em không thích", cls: "no", mark: "✕", empty: "Chưa ghi món nào" }
+  ];
+  function renderFavs() {
+    const F = data.favorites;
+    $("#favName").textContent = data.couple.you || "em";
+    $("#favsGrid").innerHTML = FAV_LISTS.map((L, l) => `
+      <div class="fav fav--${L.cls} reveal">
+        <div class="fav__head">
+          <span class="fav__badge" aria-hidden="true">${L.mark}</span>
+          <h3>${L.title}</h3>
+          <span class="fav__count">${F[L.k].length}</span>
+        </div>
+        <ul class="fav__list">
+          ${F[L.k].map((x, i) => `
+            <li class="fav__item" style="--d:${i * 70}ms">
+              <span class="fav__icon" aria-hidden="true">${esc(x.icon || L.mark)}</span>
+              <span class="fav__text">${esc(x.text)}</span>
+              <span class="fav__tools edit-only">
+                <button type="button" class="icon-btn icon-btn--sm" data-act="edit-fav" data-l="${l}" data-i="${i}" aria-label="Sửa ${esc(x.text)}">${icon("edit")}</button>
+                <button type="button" class="icon-btn icon-btn--sm" data-act="del-fav" data-l="${l}" data-i="${i}" aria-label="Xoá ${esc(x.text)}">${icon("x")}</button>
+              </span>
+            </li>`).join("") || `<li class="fav__empty">${L.empty}</li>`}
+        </ul>
+        <button type="button" class="add-stop edit-only" data-act="add-fav" data-l="${l}">${icon("plus")} Thêm món</button>
+      </div>`).join("") + `
+      <div class="fav-note reveal" ${!F.note && !editing ? "hidden" : ""}>
+        <span class="fav-note__icon" aria-hidden="true">💌</span>
+        <p><b>Ghi nhớ:</b> ${esc(F.note || "Chưa có ghi chú")}</p>
+        <button type="button" class="btn edit-only" data-act="edit-fav-note">${icon("edit")} Sửa</button>
+      </div>`;
+  }
+
   function render() {
     document.body.classList.toggle("editing", editing);
     const eb = $("#editBtn");
     eb.setAttribute("aria-pressed", editing);
     eb.setAttribute("aria-label", editing ? "Tắt chế độ chỉnh sửa" : "Bật chế độ chỉnh sửa");
     applySettings();
-    renderHero(); renderLetter(); renderMusic(); renderPlan(); renderBudget(); renderChecklist(); renderTips();
+    renderHero(); renderLetter(); renderMusic(); renderPlan(); renderBudget(); renderFavs(); renderChecklist(); renderTips();
     revealIn(document);
     if (firstRender) { observeBars(); firstRender = false; }
   }
@@ -506,7 +546,7 @@
     const s = S(), root = document.documentElement, b = document.body;
     const flags = {
       "no-countdown": !s.countdown, "no-lovestrip": !s.loveStrip, "no-letter": !s.showLetter, "no-filters": !s.filters,
-      "no-budget": !s.budget || !s.cost, "no-checklist": !s.checklist, "no-tips": !s.tips,
+      "no-budget": !s.budget || !s.cost, "no-checklist": !s.checklist, "no-favorites": !s.favorites, "no-tips": !s.tips,
       "no-music": !s.music, "no-cost": !s.cost, "no-details": !s.details, "no-note": !s.note, "no-love": !s.love, "no-mapbtns": !s.mapBtns,
       compact: s.compact, clock12: !s.clock24
     };
@@ -1066,6 +1106,21 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
       onSave: v => mutate(d => { d.checklist[g].group = v.group; }) }),
     "del-group": ({ g }) => mutate(d => { d.checklist.splice(g, 1); }, `Đã xoá nhóm "${data.checklist[g].group}"`),
     "del-item": ({ g, i }) => mutate(d => { d.checklist[g].items.splice(i, 1); }, "Đã xoá mục"),
+
+    "add-fav": ({ l }) => openForm({
+      title: `Thêm vào “${FAV_LISTS[l].title}”`, submit: "Thêm",
+      fields: [{ k: "icon", label: "Emoji", half: true, ph: "🍓" }, { k: "text", label: "Món / điều gì", half: true, req: true, ph: "VD: Kem dâu" }],
+      onSave: v => mutate(d => { d.favorites[FAV_LISTS[l].k].push({ icon: v.icon || "", text: v.text }); }) }),
+    "edit-fav": ({ l, i }) => openForm({
+      title: "Sửa", values: data.favorites[FAV_LISTS[l].k][i],
+      fields: [{ k: "icon", label: "Emoji", half: true }, { k: "text", label: "Món / điều gì", half: true, req: true }],
+      onSave: v => mutate(d => { d.favorites[FAV_LISTS[l].k][i] = { icon: v.icon || "", text: v.text }; }),
+      onDelete: () => actions["del-fav"]({ l, i }) }),
+    "del-fav": ({ l, i }) => mutate(d => { d.favorites[FAV_LISTS[l].k].splice(i, 1); }, "Đã xoá"),
+    "edit-fav-note": () => openForm({
+      title: "Ghi nhớ nhỏ", values: data.favorites,
+      fields: [{ k: "note", label: "Ghi chú", type: "textarea", rows: 2, ph: "VD: Gọi món nhớ dặn không hành" }],
+      onSave: v => mutate(d => { d.favorites.note = v.note || ""; }) }),
 
     "add-tip": () => openForm({ title: "Thêm lưu ý", fields: [{ k: "title", label: "Tiêu đề", req: true }, { k: "text", label: "Nội dung", type: "textarea", rows: 3, req: true }], submit: "Thêm",
       onSave: v => mutate(d => { d.tips.push(v); }) }),

@@ -64,7 +64,7 @@ window.LOVE_DATA = {
     budget: false, checklist: true, tips: true,
     cost: false, perPerson: false, details: true, note: true, love: true, mapBtns: true, compact: false,
     clock24: true, font: "m", accent: "blush",
-    surprise: false, hearts: false, flowers: true,
+    favorites: true, surprise: false, hearts: false, flowers: true,
     music: true, musicPrompt: true, letterMusic: true, shuffle: false, repeat: true
   },
 
@@ -95,6 +95,22 @@ window.LOVE_DATA = {
       ]
     }
   ],
+
+  // Sổ tay về em — sở thích, món ghét (sửa được ngay trên web khi bật chỉnh sửa)
+  favorites: {
+    likes: [
+      { icon: "🧋", text: "Trà sữa" },
+      { icon: "🌶️", text: "Mì cay" },
+      { icon: "🥗", text: "Bánh tráng trộn" },
+      { icon: "🧀", text: "Phô mai viên ở Lục Trà Tinh Hoa" }
+    ],
+    dislikes: [
+      { icon: "🧅", text: "Hành" },
+      { icon: "🍚", text: "Cơm" },
+      { icon: "🍗", text: "Gà" }
+    ],
+    note: "Gọi món nhớ dặn quán: không bỏ hành nha!"
+  },
 
   checklist: [
     { group: "Mang theo", items: ["Ô gấp / áo mưa", "Áo khoác cho đường về Củ Chi buổi tối", "Kem chống nắng", "Khăn giấy ướt", "Tiền mặt lẻ (gửi xe, quán nhỏ)"] },
