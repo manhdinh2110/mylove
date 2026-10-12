@@ -718,6 +718,8 @@ body.editing .music { bottom: 88px; }
 /* Đã đồng bộ Firebase → không cần chia sẻ link / tải file */
 .cloud .editbar [data-act="share"], .cloud .editbar [data-act="download"], .cloud .editbar .more { display: none; }
 
-/* Phát ngầm: khung YouTube vẫn chạy nhưng nằm ngoài màn hình (YouTube cần khung ≥ 200px mới chịu phát) */
-.music.bg[data-state="closed"] .music__panel { display: flex; position: fixed; left: -10000px; top: 0; width: 320px; opacity: 0; pointer-events: none; }
-.music.bg[data-state="closed"] .music__video { display: block; }
+/* Phát ngầm: khung YouTube vẫn nằm trong màn hình nhưng gần như trong suốt.
+   (Đẩy ra ngoài màn hình thì iPhone bật video toàn màn hình; YouTube cũng cần khung ≥ 200px mới chịu phát) */
+.music.bg[data-state="closed"] .music__panel { display: block; position: fixed; left: 0; bottom: 0; width: 240px; padding: 0; margin: 0; opacity: .01; pointer-events: none; z-index: -1; overflow: hidden; }
+.music.bg[data-state="closed"] .music__panel > :not(.music__video) { display: none; }
+.music.bg[data-state="closed"] .music__video { display: block; margin: 0; }
