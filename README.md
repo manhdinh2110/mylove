@@ -100,7 +100,7 @@ git push -u origin main
 ```
 
 Sau đó vào repo trên GitHub → **Settings → Pages** → *Source*: **Deploy from a branch** → chọn `main` / `/ (root)` → **Save**.
-Khoảng 1–2 phút sau trang sẽ có ở `https://<ten-ban>.github.io/<ten-repo>/`.
+Khoảng 1–2 phút sau trang sẽ có ở `https://<ten-ban>.github.io/<ten-repo>/`...
 
 > Lưu ý: repo public thì ai có link cũng xem được. Đừng đưa thông tin nhạy cảm (số điện thoại, mã đặt phòng…) vào `data.js`.
 
