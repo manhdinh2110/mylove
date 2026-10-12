@@ -137,7 +137,7 @@
     const you = C.you || "em";
     $("gateNames").textContent = [C.me, C.you].filter(Boolean).join(" & ") || "Hai ta";
     $("gateTitle").innerHTML = "";
-    $("gateTitle").append("Chào ", Object.assign(document.createElement("em"), { textContent: you }));
+    $("gateTitle").append("Chào ", Object.assign(document.createElement("em"), { textContent: "dợ của ăm chả" }));
     if (L.welcome) $("gateSub").textContent = L.welcome;
     if (L.hint) { $("hintBox").hidden = false; $("hintText").textContent = L.hint; }
     $("gateFoot").textContent = "Chỉ dành riêng cho " + you + " ♥";
