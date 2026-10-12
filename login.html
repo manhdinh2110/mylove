@@ -12,14 +12,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261012" />
-  <script src="assets/js/data.js?v=20261012"></script>
-  <script src="assets/js/auth.js?v=20261012"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20261013" />
+  <script src="assets/js/data.js?v=20261013"></script>
+  <script src="assets/js/cloud-config.js?v=20261013"></script>
+  <script src="assets/js/cloud.js?v=20261013"></script>
+  <script src="assets/js/auth.js?v=20261013"></script>
   <script>
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     document.documentElement.dataset.accent = (window.LOVE_DATA && LOVE_DATA.settings && LOVE_DATA.settings.accent) || "rose";
     // Đã đăng nhập (hoặc tắt login) thì vào thẳng
-    if (LoveAuth.ok()) location.replace(LoveAuth.next());
+    if (LoveAuth.ok() && !/[?&]setup/.test(location.search)) location.replace(LoveAuth.next());
   </script>
   <style>
     body { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; overflow-x: hidden; }
@@ -109,10 +111,14 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
+      <div id="pw2Wrap" hidden>
+        <label for="pw2">Nhập lại mật khẩu</label>
+        <div class="field"><input id="pw2" type="password" autocomplete="new-password" /></div>
+      </div>
       <p class="gate__err" id="err" role="alert"></p>
       <button class="go" type="submit">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.3 1.1 4.1 2.3h.2C11.5 6.1 12.8 5 14.8 5c3.4 0 5.5 3.4 4 6.8C16.7 16.4 12 21 12 21z"/></svg>
-        Mở cửa trái tim
+        <span id="goText">Mở cửa trái tim</span>
       </button>
     </form>
 
@@ -149,14 +155,51 @@
 
     const tease = ["Chưa đúng rồi, thử lại nha", "Hmm… nghĩ kỹ thêm chút nữa", "Gần đúng rồi đó (chắc vậy)", "Bấm “Xem gợi ý” đi em"];
     let tries = 0;
-    $("gateForm").addEventListener("submit", e => {
+    // Thiết lập lần đầu với Firebase: mở login.html?setup
+    const cloud = LoveAuth.cloud();
+    const setup = cloud && new URLSearchParams(location.search).has("setup");
+    if (setup) {
+      $("pw2Wrap").hidden = false;
+      $("gateSub").textContent = "Thiết lập lần đầu: chọn mật khẩu chung cho hai đứa. Kế hoạch hiện tại sẽ được đưa lên mạng.";
+      $("goText").textContent = "Tạo kế hoạch trên mạng";
+      $("hintBox").hidden = true;
+    }
+    // Bản để đưa lên mạng: ưu tiên bản đã sửa trên máy này, không kèm mật khẩu cũ
+    const seed = () => {
+      let plan = D, check = [];
+      try {
+        const saved = JSON.parse(localStorage.getItem("loveData.v1") || "null");
+        if (saved && saved.data && Array.isArray(saved.data.days)) plan = saved.data;
+        check = JSON.parse(localStorage.getItem("checklist") || "[]");
+      } catch (e) {}
+      plan = JSON.parse(JSON.stringify(plan)); delete plan.login;
+      return [plan, check];
+    };
+
+    let busy = false;
+    $("gateForm").addEventListener("submit", async e => {
       e.preventDefault();
-      const gate = $("gate");
-      if (LoveAuth.login($("pw").value)) {
+      if (busy) return;
+      const gate = $("gate"), pw = $("pw").value;
+      let ok = false;
+      busy = true; $("err").textContent = cloud ? "Đang kiểm tra…" : "";
+      try {
+        if (setup) {
+          if (pw.replace(/\s/g, "").length < 8) throw new Error("Mật khẩu nên dài ít nhất 8 ký tự");
+          if (pw !== $("pw2").value) throw new Error("Hai lần nhập chưa giống nhau");
+          ok = await LoveCloud.create(pw, ...seed());
+        } else ok = cloud ? await LoveCloud.login(pw) : LoveAuth.login(pw);
+      } catch (err) {
+        busy = false;
+        $("err").textContent = /Firebase|fetch/i.test(err.message) ? "Không kết nối được, kiểm tra mạng rồi thử lại" : err.message;
+        return;
+      }
+      busy = false;
+      if (ok) {
         $("err").textContent = "";
         celebrate();
         gate.classList.add("open");
-        setTimeout(() => location.replace(LoveAuth.next()), 1100);
+        setTimeout(() => location.replace(setup ? "index.html" : LoveAuth.next()), 1100);
       } else {
         $("err").textContent = tease[Math.min(tries++, tease.length - 1)];
         if (tries >= 2 && L.hint) $("hintBox").hidden = false;

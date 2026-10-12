@@ -12,18 +12,21 @@ window.LoveAuth = (() => {
   const norm = s => String(s || "").normalize("NFC").toLowerCase().replace(/[\s/.\-]+/g, "");
   const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33) ^ s.charCodeAt(i); return (h >>> 0).toString(36); };
   const token = () => "v1." + hash("love|" + norm(cfg().password));
-  const enabled = () => cfg().enabled !== false && !!norm(cfg().password);
+  const cloud = () => !!(window.LoveCloud && LoveCloud.enabled());
+  // Có Firebase → luôn cần đăng nhập (mật khẩu không nằm trong data.js nữa)
+  const enabled = () => cloud() || (cfg().enabled !== false && !!norm(cfg().password));
   const get = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
 
   return {
     enabled,
-    ok: () => !enabled() || get() === token(),
+    cloud,
+    ok: () => cloud() ? LoveCloud.ready() : (!enabled() || get() === token()),
     login(pw) {
       if (norm(pw) !== norm(cfg().password)) return false;
       try { localStorage.setItem(KEY, token()); } catch {}
       return true;
     },
-    logout() { try { localStorage.removeItem(KEY); } catch {} },
+    logout() { try { localStorage.removeItem(KEY); } catch {} if (cloud()) LoveCloud.logout(); },
     // Trang cần quay lại sau khi đăng nhập (giữ cả #share=… nếu có)
     next() {
       const n = new URLSearchParams(location.search).get("next") || "";

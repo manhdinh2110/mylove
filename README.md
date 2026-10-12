@@ -21,6 +21,35 @@ Mở web sẽ gặp `login.html` trước, nhập đúng mật khẩu mới vào
 
 > Đây chỉ là "cửa" cho người lạ khỏi mở nhầm. Web tĩnh không có máy chủ nên ai mở mã nguồn `data.js` vẫn đọc được nội dung và mật khẩu.
 
+## Đồng bộ realtime ☁️ (không cần email)
+
+Sửa trên máy này, máy kia thấy ngay — không cần gửi file. Dùng Firebase Realtime Database (miễn phí).
+
+1. Vào <https://console.firebase.google.com> → **Add project** (tắt Google Analytics cho nhanh).
+2. Menu trái **Build → Realtime Database → Create Database** → chọn vùng **Singapore (asia-southeast1)** → **Start in locked mode**.
+3. Tab **Rules**, dán đoạn này rồi bấm **Publish**:
+   ```json
+   {
+     "rules": {
+       "plans": {
+         "$key": {
+           ".read": "$key.length === 64",
+           ".write": "$key.length === 64"
+         }
+       }
+     }
+   }
+   ```
+4. Tab **Data**, copy URL ở trên cùng (dạng `https://...firebasedatabase.app`) → dán vào `assets/js/cloud-config.js` → commit & push.
+5. Mở `https://<trang-của-bạn>/login.html?setup` → chọn **mật khẩu chung** (nhập 2 lần) → kế hoạch hiện tại được đưa lên mạng.
+6. Gửi link trang + mật khẩu cho người ấy. Xong!
+
+Ghi chú:
+- Mật khẩu **không lưu ở đâu cả**: dữ liệu nằm ở một "ngăn" có tên tính ra từ mật khẩu, ai gõ đúng mới tìm ra. Vì vậy hãy chọn mật khẩu **khó đoán** (một câu ngắn là tốt nhất, ví dụ `kieu mi thich an kem`), đừng dùng ngày tháng.
+- Quên mật khẩu = mất đường vào ngăn đó (dữ liệu cũ vẫn nằm trên Firebase). Cứ chạy lại bước 5 với mật khẩu mới.
+- Khi đã bật đồng bộ, mục `login.password` trong `data.js` không còn dùng nữa — nên xoá đi. Nội dung trong `data.js` vẫn ai cũng đọc được, nên có thể thay bằng bản rút gọn.
+- Để trống URL trong `cloud-config.js` thì web quay lại chạy như cũ.
+
 ## Cài đặt hiển thị ⚙️
 
 Bấm nút **bánh răng** để mở bảng cài đặt. Mọi thay đổi áp dụng ngay và được lưu cùng kế hoạch (nên cũng đi theo **Chia sẻ link** và **Tải data.js**).

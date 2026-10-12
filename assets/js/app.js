@@ -160,11 +160,23 @@
   let firstRender = true;
   const undoStack = [];
 
+  /* ---------- Đồng bộ realtime (Firebase) ---------- */
+  const CLOUD = !!(window.LoveCloud && LoveCloud.ready());
+  const planForCloud = () => { const d = clone(data); delete d.login; return d; };
+  const hhmm = () => new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  const setStatus = txt => { const st = $("#saveStatus"); st.textContent = txt; st.classList.remove("flash"); void st.offsetWidth; st.classList.add("flash"); };
+  const pushCheck = () => { if (CLOUD) LoveCloud.write("check", [...checked]).catch(() => toast("Chưa lưu được checklist lên mạng — kiểm tra kết nối")); };
+
   const save = () => {
     const ok = store.set(KEY, { base: BASE, savedAt: Date.now(), data });
-    const st = $("#saveStatus");
-    st.textContent = ok ? `Đã lưu lúc ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} · trên máy này` : "Không lưu được (trình duyệt chặn bộ nhớ) — hãy tải data.js";
-    st.classList.remove("flash"); void st.offsetWidth; st.classList.add("flash");
+    if (CLOUD) {
+      setStatus("Đang lưu lên mạng…");
+      LoveCloud.write("plan", planForCloud())
+        .then(() => setStatus(`Đã lưu lúc ${hhmm()} · hai máy cùng thấy`))
+        .catch(() => setStatus("Chưa lưu được lên mạng — kiểm tra kết nối, sửa tiếp sẽ thử lại"));
+      return;
+    }
+    setStatus(ok ? `Đã lưu lúc ${hhmm()} · trên máy này` : "Không lưu được (trình duyệt chặn bộ nhớ) — hãy tải data.js");
   };
   const mutate = (fn, msg) => {
     undoStack.push(JSON.stringify(data));
@@ -1117,9 +1129,9 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
   $("#checklist").addEventListener("change", e => {
     const k = e.target.dataset.k; if (!k) return;
     e.target.checked ? checked.add(k) : checked.delete(k);
-    store.set("checklist", [...checked]); renderChecklist(); revealIn($("#checklist"));
+    store.set("checklist", [...checked]); pushCheck(); renderChecklist(); revealIn($("#checklist"));
   });
-  $("#checkReset").addEventListener("click", () => { checked.clear(); store.set("checklist", []); renderChecklist(); revealIn($("#checklist")); });
+  $("#checkReset").addEventListener("click", () => { checked.clear(); store.set("checklist", []); pushCheck(); renderChecklist(); revealIn($("#checklist")); });
 
   /* ---------- Edit mode, theme, print, keyboard ---------- */
   function setEditing(on) {
@@ -1150,6 +1162,16 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
      ========================================================= */
   (async function init() {
     let notice = null;
+    if (CLOUD) {
+      try {
+        const remote = await LoveCloud.load();
+        if (remote.plan && valid(remote.plan)) {
+          data = normalize(remote.plan);
+          store.set(KEY, { base: BASE, savedAt: Date.now(), data });
+        }
+        if (Array.isArray(remote.check)) { checked.clear(); remote.check.forEach(k => checked.add(k)); store.set("checklist", remote.check); }
+      } catch (e) { console.warn("Không tải được từ Firebase", e); notice = ["Đang offline — hiện bản lưu trên máy này", null]; }
+    }
     const m = location.hash.match(/^#share=([\w-]+)$/);
     if (m) {
       history.replaceState(null, "", location.pathname + location.search);
@@ -1163,6 +1185,10 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
           notice = ["Đã mở kế hoạch được chia sẻ", prev?.data ? { label: "Dùng bản của mình", fn: () => { data = normalize(prev.data); save(); render(); } } : null];
         }
       } catch (e) { console.warn("Link chia sẻ lỗi", e); notice = ["Link chia sẻ bị lỗi — đang hiện bản gốc", null]; }
+    }
+    if (!data && CLOUD) {
+      const saved = store.get(KEY, null);
+      data = normalize(saved?.data && valid(saved.data) ? saved.data : clone(DEFAULT));
     }
     if (!data) {
       const saved = store.get(KEY, null);
@@ -1184,6 +1210,20 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
 
     render();
     tick(); setInterval(tick, 1000);
+    if (CLOUD) {
+      if (m) save(); // vừa mở link chia sẻ → đưa bản đó lên mạng
+      LoveCloud.listen((part, v) => {
+        if (part === "plan" && v && valid(v) && JSON.stringify(v) !== JSON.stringify(planForCloud())) {
+          data = normalize(v);
+          store.set(KEY, { base: BASE, savedAt: Date.now(), data });
+          render();
+          toast("Lịch trình vừa được cập nhật từ máy kia ♥");
+        } else if (part === "check" && Array.isArray(v)) {
+          checked.clear(); v.forEach(k => checked.add(k));
+          store.set("checklist", v); renderChecklist(); revealIn($("#checklist"));
+        }
+      });
+    }
     if (notice) toast(notice[0], notice[1], 8000);
     else if (S().music && S().musicPrompt && player.playable().length)
       setTimeout(() => { if (!player.started) toast("Bật chút nhạc cho lãng mạn hơn nhé?", { label: "♪ Bật nhạc", fn: () => player.play() }, 9000); }, 1500);
