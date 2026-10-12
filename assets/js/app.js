@@ -146,6 +146,8 @@
     if (!ACCENTS[d.settings.accent]) d.settings.accent = "rose";
     d.letter = { title: "", body: "", sign: "", ...(d.letter || {}) };
     d.music = { songs: Array.isArray(d.music?.songs) ? d.music.songs.filter(Boolean).map(x => ({ title: "", artist: "", url: "", ...x })) : [] };
+    // Bài nào data.js đã gắn link (vd file music/*.mp3) thì luôn dùng link đó, kể cả khi bản trên mạng khác
+    (DEFAULT.music?.songs || []).forEach(f => { if (!f.url) return; const x = d.music.songs.find(y => y.title === f.title); if (x) x.url = f.url; });
     d.checklist = Array.isArray(d.checklist) ? d.checklist : [];
     d.tips = Array.isArray(d.tips) ? d.tips : [];
     d.days.forEach(day => {

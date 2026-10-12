@@ -52,7 +52,7 @@ window.LOVE_DATA = {
   music: {
     songs: [
       { title: "My Love", artist: "Westlife", url: "" },
-      { title: "Một Đời", artist: "14 Casper & Bon Nghiêm", url: "" },
+      { title: "Một Đời", artist: "14 Casper & Bon Nghiêm", url: "music/mot-doi.mp3" },
       { title: "Ngày Còn Đôi Mươi", artist: "", url: "" },
       { title: "Secret", artist: "", url: "" }
     ]
