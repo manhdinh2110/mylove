@@ -953,7 +953,8 @@
 
     return {
       get started() { return started; },
-      playable, play: toggle, renderList, pauseAll,
+      get playing() { return playing; },
+      playable, play: toggle, playIndex, renderList, pauseAll,
       onRemoved(i) { if (i === idx) { pauseAll(); idx = -1; started = false; } else if (i < idx) idx--; },
       onSwapped(a, b) { if (idx === a) idx = b; else if (idx === b) idx = a; }
     };
@@ -1226,7 +1227,19 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
         }
       });
     }
-    if (notice) toast(notice[0], notice[1], 8000);
+    // Vừa đăng nhập xong → phát bài "Một Đời"
+    let afterLogin = null;
+    try { afterLogin = sessionStorage.getItem("playAfterLogin"); sessionStorage.removeItem("playAfterLogin"); } catch {}
+    const loginSong = afterLogin && S().music ? data.music.songs.findIndex(x => (x.title || "").toLowerCase().includes(afterLogin.toLowerCase())) : -1;
+    if (loginSong >= 0) {
+      const evs = ["pointerdown", "keydown"];
+      const go = () => { evs.forEach(ev => document.removeEventListener(ev, go)); if (!player.playing) player.playIndex(loginSong); };
+      player.playIndex(loginSong);
+      // Trình duyệt thường chặn tự phát có tiếng → phát ngay ở lần chạm đầu tiên
+      if (player.playable().includes(loginSong)) evs.forEach(ev => document.addEventListener(ev, go));
+      setTimeout(() => { if (!player.playing && player.playable().includes(loginSong)) toast(`♪ Chạm để nghe “${data.music.songs[loginSong].title}”`, { label: "Phát", fn: go }, 9000); }, 1800);
+    }
+    else if (notice) toast(notice[0], notice[1], 8000);
     else if (S().music && S().musicPrompt && player.playable().length)
       setTimeout(() => { if (!player.started) toast("Bật chút nhạc cho lãng mạn hơn nhé?", { label: "♪ Bật nhạc", fn: () => player.play() }, 9000); }, 1500);
 
