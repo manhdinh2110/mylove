@@ -25,8 +25,8 @@
  */
 window.LOVE_DATA = {
   couple: {
-    me: "--",
-    you: "--",
+    me: "Dinh",
+    you: "Kiều Mi",
     since: "2026-10-03",
     tagline: "Sài Gòn quen thuộc, nhưng đi cùng em thì ngày nào cũng mới."
   },

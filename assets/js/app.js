@@ -72,6 +72,9 @@
   };
   const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[k] || P.place}</svg>`;
 
+  // Tên hai đứa — cố định, chỉ đổi được ở đây
+  const NAMES = { me: "Dinh", you: "Kiều Mi" };
+
   const TYPES = {
     food:   { label: "Ăn uống",   c: "var(--t-food)" },
     coffee: { label: "Cà phê",    c: "var(--t-coffee)" },
@@ -138,6 +141,7 @@
   const valid = d => d && typeof d === "object" && d.couple && d.trip && Array.isArray(d.days) && d.days.length > 0 && d.days.every(x => x && Array.isArray(x.stops));
   const normalize = d => {
     d.couple ??= {}; d.trip ??= {};
+    Object.assign(d.couple, NAMES); // tên cố định, không sửa trên web
     d.settings = { ...DEFAULT_SETTINGS, ...(d.settings || {}) };
     if (!ACCENTS[d.settings.accent]) d.settings.accent = "rose";
     d.letter = { title: "", body: "", sign: "", ...(d.letter || {}) };
@@ -291,8 +295,6 @@
     { k: "summary", label: "Tóm tắt", type: "textarea" }
   ];
   const TRIP_FIELDS = [
-    { k: "couple.me", label: "Tên bạn", half: true, req: true },
-    { k: "couple.you", label: "Tên người ấy", half: true, req: true },
     { k: "couple.since", label: "Ngày bắt đầu yêu", type: "date", half: true },
     { k: "trip.stay", label: "Chỗ ở", half: true },
     { k: "couple.tagline", label: "Câu thương", type: "textarea" },
