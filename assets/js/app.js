@@ -162,6 +162,7 @@
 
   /* ---------- Đồng bộ realtime (Firebase) ---------- */
   const CLOUD = !!(window.LoveCloud && LoveCloud.ready());
+  document.body.classList.toggle("cloud", CLOUD); // đã đồng bộ → ẩn nút chia sẻ / tải file
   const planForCloud = () => { const d = clone(data); delete d.login; return d; };
   const hhmm = () => new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
   const setStatus = txt => { const st = $("#saveStatus"); st.textContent = txt; st.classList.remove("flash"); void st.offsetWidth; st.classList.add("flash"); };

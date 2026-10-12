@@ -714,3 +714,6 @@ body.editing .music { bottom: 88px; }
   .daypanel__head h3 { background: none; color: var(--ink); -webkit-text-fill-color: currentColor; }
   .card:not(.card--secret) { background: var(--surface); }
 }
+
+/* Đã đồng bộ Firebase → không cần chia sẻ link / tải file */
+.cloud .editbar [data-act="share"], .cloud .editbar [data-act="download"], .cloud .editbar .more { display: none; }
