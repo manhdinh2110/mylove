@@ -12,11 +12,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021" />
-  <script src="assets/js/data.js?v=20261021"></script>
-  <script src="assets/js/cloud-config.js?v=20261021"></script>
-  <script src="assets/js/cloud.js?v=20261021"></script>
-  <script src="assets/js/auth.js?v=20261021"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20261022" />
+  <script src="assets/js/data.js?v=20261022"></script>
+  <script src="assets/js/cloud-config.js?v=20261022"></script>
+  <script src="assets/js/cloud.js?v=20261022"></script>
+  <script src="assets/js/auth.js?v=20261022"></script>
   <script>
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     document.documentElement.dataset.accent = (window.LOVE_DATA && LOVE_DATA.settings && LOVE_DATA.settings.accent) || "rose";
@@ -111,6 +111,42 @@
     .gate__music[aria-pressed="true"] .note { display: none; }
     .gate__music[aria-pressed="true"] .eq { display: flex; }
     .gate__foot { margin-top: 22px; font-size: .78rem; color: var(--ink-soft); letter-spacing: .04em; }
+    /* Màn chào: chạm trái tim để mở (cú chạm này cho phép phát nhạc) */
+    .splash {
+      position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; text-align: center; padding: 24px 16px;
+      background:
+        radial-gradient(60% 50% at 50% 40%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+        radial-gradient(50% 40% at 80% 90%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 70%),
+        var(--bg);
+      transition: opacity .9s ease, visibility .9s;
+    }
+    .splash.gone { opacity: 0; visibility: hidden; }
+    .splash__heart {
+      position: relative; width: 132px; height: 132px; border: 0; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 26px;
+      color: var(--accent-ink); font-size: 58px; cursor: pointer;
+      background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 70%);
+      box-shadow: 0 18px 40px -14px var(--accent), 0 0 0 10px color-mix(in srgb, var(--accent) 12%, transparent);
+      animation: beat 1.6s ease-in-out infinite;
+    }
+    .splash__heart svg { fill: currentColor; stroke: none; }
+    .splash__heart::before, .splash__heart::after {
+      content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0;
+      animation: ripple 2.4s ease-out infinite;
+    }
+    .splash__heart::after { animation-delay: 1.2s; }
+    @keyframes ripple { from { transform: scale(1); opacity: .5; } to { transform: scale(1.9); opacity: 0; } }
+    .splash.opening .splash__heart { animation: openHeart .7s cubic-bezier(.3,0,.2,1) forwards; }
+    @keyframes openHeart { 40% { transform: scale(.85); } to { transform: scale(2.6); opacity: 0; } }
+    .splash h2 { font-size: clamp(1.9rem, 8vw, 2.6rem); margin-bottom: 8px; }
+    .splash h2 em {
+      font-style: italic; font-weight: 500;
+      background: linear-gradient(100deg, var(--accent), var(--gold) 60%, var(--accent)); background-size: 200% auto;
+      -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite;
+    }
+    .splash p { color: var(--ink-soft); font: italic 1.05rem var(--serif); animation: breathe 2.4s ease-in-out infinite; }
+    @keyframes breathe { 50% { opacity: .45; } }
+    .gate.waiting { visibility: hidden; }
+    @media (prefers-reduced-motion: reduce) { .splash *, .splash *::before, .splash *::after { animation: none !important; } }
     @media (prefers-reduced-motion: reduce) { .gate, .gate h1 em, .gate__heart svg { animation: none !important; } #lcS.tick { animation: none; } }
   </style>
 </head>
@@ -122,7 +158,17 @@
   </button>
   <div class="hearts" id="hearts" aria-hidden="true"></div>
 
-  <main class="gate" id="gate">
+  <div class="splash" id="splash">
+    <div>
+      <button class="splash__heart" id="splashBtn" type="button" aria-label="Chạm để mở">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.3 1.1 4.1 2.3h.2C11.5 6.1 12.8 5 14.8 5c3.4 0 5.5 3.4 4 6.8C16.7 16.4 12 21 12 21z"/></svg>
+      </button>
+      <h2>Gửi <em>dợ của ăm</em></h2>
+      <p>Chạm vào trái tim để mở</p>
+    </div>
+  </div>
+
+  <main class="gate waiting" id="gate">
     <div class="gate__heart" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.3 1.1 4.1 2.3h.2C11.5 6.1 12.8 5 14.8 5c3.4 0 5.5 3.4 4 6.8C16.7 16.4 12 21 12 21z"/></svg>
     </div>
@@ -143,7 +189,7 @@
     <form id="gateForm" autocomplete="off" novalidate>
       <label for="pw">Mật khẩu</label>
       <div class="field">
-        <input id="pw" type="password" inputmode="text" autocomplete="current-password" required autofocus />
+        <input id="pw" type="password" inputmode="text" autocomplete="current-password" required />
         <button type="button" id="peek" aria-label="Hiện mật khẩu" aria-pressed="false" title="Hiện / ẩn">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -284,6 +330,20 @@
     };
     firstEvs.forEach(ev => document.addEventListener(ev, onFirst, true));
     startBgm(); // thử phát luôn, máy nào cho thì chạy
+
+    // Màn chào: chạm trái tim → phát nhạc, bung tim, hiện khung mật khẩu
+    $("splashBtn").addEventListener("click", () => {
+      const sp = $("splash");
+      if (sp.classList.contains("opening")) return;
+      userPaused = false; startBgm();
+      const r = $("splashBtn").getBoundingClientRect();
+      celebrate(r.left + r.width / 2, r.top + r.height / 2);
+      sp.classList.add("opening");
+      $("gate").classList.remove("waiting");
+      $("gate").style.animation = "none"; void $("gate").offsetWidth; $("gate").style.animation = "";
+      setTimeout(() => sp.classList.add("gone"), 350);
+      setTimeout(() => { sp.remove(); $("pw").focus({ preventScroll: true }); }, 1300);
+    });
     $("bgmBtn").addEventListener("click", () => {
       firstEvs.forEach(ev => document.removeEventListener(ev, onFirst, true));
       if (bgm.paused) { userPaused = false; bgm.play().catch(() => {}); } else { userPaused = true; bgm.pause(); }
@@ -311,9 +371,9 @@
     };
     if (!reduce && D.settings?.flowers !== false) { for (let i = 0; i < 8; i++) setTimeout(spawn, i * 200); setInterval(spawn, 550); }
 
-    function celebrate() {
+    function celebrate(x, y) {
       if (reduce) return;
-      const r = $("gate").getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + 90;
+      const r = $("gate").getBoundingClientRect(), cx = x ?? r.left + r.width / 2, cy = y ?? r.top + 90;
       for (let i = 0; i < 18; i++) {
         const h = document.createElement("span");
         h.className = "bheart";
