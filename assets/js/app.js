@@ -1244,14 +1244,20 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
     if (loginSong >= 0) {
       // click/touchend: iPhone chỉ cho phát nhạc trong 2 sự kiện này (pointerdown không tính)
       const evs = ["click", "touchend", "keydown"];
+      const card = $("#listen");
+      const hideCard = () => { if (card.hidden) return; card.classList.add("is-leaving"); setTimeout(() => { card.hidden = true; }, 450); };
       const go = e => {
         if (e?.target?.closest?.("#music")) return; // bấm vào trình phát thì để trình phát tự xử lý
         evs.forEach(ev => document.removeEventListener(ev, go, true));
+        hideCard();
         if (!player.playing) player.playIndex(loginSong, true);
       };
       player.playIndex(loginSong, true);
-      // Trình duyệt thường chặn tự phát có tiếng → lặng lẽ phát ngầm ở lần chạm đầu tiên, không hiện gì
-      if (player.playable().includes(loginSong)) evs.forEach(ev => document.addEventListener(ev, go, true));
+      // Trình duyệt thường chặn tự phát có tiếng → hiện thiệp mời nghe; chạm thiệp (hoặc bất kỳ đâu) là phát ngầm
+      if (player.playable().includes(loginSong)) {
+        evs.forEach(ev => document.addEventListener(ev, go, true));
+        setTimeout(() => { if (!player.playing) card.hidden = false; }, 900);
+      }
     }
     else if (notice) toast(notice[0], notice[1], 8000);
     else if (S().music && S().musicPrompt && player.playable().length)

@@ -727,3 +727,31 @@ body.editing .music { bottom: 88px; }
 /* Safari (iPhone) thêm padding mặc định cho <button> → icon trong nút tròn bị lệch */
 .icon-btn, .music__fab, .music__play, .field button, .gate__music { padding: 0; -webkit-appearance: none; appearance: none; }
 :where(.icon-btn, .music__fab, .music__play, .stop__dot, .gate__music) svg { display: block; flex: none; }
+
+/* Thiệp mời nghe nhạc sau khi đăng nhập */
+.listen {
+  position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 60; transform: translateX(-50%);
+  width: min(380px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; text-align: left;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); border-radius: 20px; color: var(--ink);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--accent-soft) 92%, transparent));
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow), 0 18px 40px -18px color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: listenIn .7s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.listen[hidden] { display: none; }
+.listen.is-leaving { animation: listenOut .45s ease forwards; }
+@keyframes listenIn { from { opacity: 0; transform: translate(-50%, 30px) scale(.95); } }
+@keyframes listenOut { to { opacity: 0; transform: translate(-50%, 20px) scale(.96); } }
+.listen__heart {
+  position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%; color: var(--accent-ink);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 70%);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+  animation: beat 1.6s ease-in-out infinite;
+}
+.listen__heart svg { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); fill: currentColor; stroke: none; }
+.listen__text { flex: 1; font: 500 .95rem/1.4 var(--sans); }
+.listen__text em { font: italic 600 1.02rem var(--serif); color: var(--accent); }
+.listen__note { flex: none; font-size: 1.3rem; color: var(--accent); animation: bob 1.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .listen, .listen__heart, .listen__note { animation: none; } }
+@media print { .listen { display: none !important; } }

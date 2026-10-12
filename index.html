@@ -13,11 +13,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261026" />
-  <script src="assets/js/data.js?v=20261026"></script>
-  <script src="assets/js/cloud-config.js?v=20261026"></script>
-  <script src="assets/js/cloud.js?v=20261026"></script>
-  <script src="assets/js/auth.js?v=20261026"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027" />
+  <script src="assets/js/data.js?v=20261027"></script>
+  <script src="assets/js/cloud-config.js?v=20261027"></script>
+  <script src="assets/js/cloud.js?v=20261027"></script>
+  <script src="assets/js/auth.js?v=20261027"></script>
   <script>
     LoveAuth.guard(); // chưa đăng nhập → chuyển sang login.html
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -215,8 +215,13 @@
   <div class="hearts" id="hearts" aria-hidden="true"></div>
   <dialog class="modal" id="modal" aria-labelledby="modalTitle"></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <button class="listen" id="listen" type="button" hidden>
+    <span class="listen__heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.24 2 12.16 2 8.4 2 5.32 4.42 2.9 7.5 2.9c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.9c3.08 0 5.5 2.42 5.5 5.5 0 3.76-3.4 6.84-8.55 11.49L12 21.2z"/></svg></span>
+    <span class="listen__text">Nhấn vào để nghe những điều <em>ăm chả</em> muốn nói</span>
+    <span class="listen__note" aria-hidden="true">♪</span>
+  </button>
   <input type="file" id="importFile" accept=".json,.js,application/json,text/javascript" hidden />
 
-  <script src="assets/js/app.js?v=20261026"></script>
+  <script src="assets/js/app.js?v=20261027"></script>
 </body>
 </html>
