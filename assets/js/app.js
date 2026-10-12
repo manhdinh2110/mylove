@@ -88,11 +88,12 @@
     budget: true, checklist: true, tips: true,
     cost: true, perPerson: false, details: true, note: true, love: true, mapBtns: true, compact: false,
     clock24: true, font: "m", accent: "rose",
-    surprise: false, hearts: false,
+    surprise: false, hearts: false, flowers: true,
     music: true, musicPrompt: true, letterMusic: true, shuffle: false, repeat: true
   };
   const ACCENTS = {
     rose: { label: "Hồng rượu", c: "#b23a48" },
+    blush: { label: "Hồng phấn", c: "#e88aa6" },
     peach: { label: "Cam đào", c: "#cf5f3d" },
     lavender: { label: "Tím oải hương", c: "#7656b8" },
     ocean: { label: "Xanh biển", c: "#2c6aa0" },
@@ -104,12 +105,12 @@
       ["loveStrip", "Dải “đã bên nhau … ngày”"],
       ["showLetter", "Thư tay", "Phong bì nhỏ, chạm để mở"],
       ["filters", "Bộ lọc loại hoạt động"],
-      ["budget", "Mục Ngân sách"],
+      // ["budget", "Mục Ngân sách"], // tạm ẩn khỏi Cài đặt
       ["checklist", "Mục Chuẩn bị"],
       ["tips", "Mục Lưu ý"]
     ]},
     { title: "Chi tiết mỗi hoạt động", items: [
-      ["cost", "Chi phí", "Tắt sẽ ẩn mọi con số tiền, kể cả mục Ngân sách"],
+      // ["cost", "Chi phí", "Tắt sẽ ẩn mọi con số tiền, kể cả mục Ngân sách"], // tạm ẩn khỏi Cài đặt
       ["details", "Địa chỉ & cách di chuyển"],
       ["note", "Ghi chú / mẹo"],
       ["love", "Lời nhắn yêu thương"],
@@ -496,6 +497,7 @@
     root.dataset.accent = s.accent;
     root.dataset.font = s.font;
     hearts(s.hearts);
+    flowers(s.flowers);
   }
 
   /* ---------- Thư tay ---------- */
@@ -525,6 +527,50 @@
       layer.append(h);
     }
   }
+
+  /* ---------- Hoa rơi ---------- */
+  const FLOWER_COLORS = ["#f4a7b9", "#f7c6d0", "#ffd1dc", "#f9b4ab", "#fbe3e8", "#e8a0bf", "#f6c89f"];
+  const flowerSvg = (c, kind) => kind === "petal"
+    ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" d="M12 2C7 6 5 11 7.5 16.5 9 19.5 12 22 12 22s3-2.5 4.5-5.5C19 11 17 6 12 2z"/><path d="M12 6v13" stroke="#fff" stroke-opacity=".45" stroke-width=".8" fill="none"/></svg>`
+    : `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="${c}">${[0, 72, 144, 216, 288].map(r => `<path transform="rotate(${r} 12 12)" d="M12 12C9.2 9.6 9 5.6 10.6 3.4c.5.8 1 1.1 1.4 1.1s.9-.3 1.4-1.1C15 5.6 14.8 9.6 12 12z"/>`).join("")}</g><circle cx="12" cy="12" r="2.1" fill="#f6d186"/><circle cx="12" cy="12" r="1" fill="#e8a33d"/></svg>`;
+  const makeFlower = (cls, kind) => {
+    const f = document.createElement("span");
+    f.className = cls;
+    f.innerHTML = `<i>${flowerSvg(FLOWER_COLORS[Math.random() * FLOWER_COLORS.length | 0], kind)}</i>`;
+    return f;
+  };
+  let flowerTimer = null;
+  function flowers(on) {
+    const layer = $("#hearts");
+    if (!on || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      clearInterval(flowerTimer); flowerTimer = null; $$(".fflower", layer).forEach(f => f.remove()); return;
+    }
+    if (flowerTimer) return;
+    const spawn = () => {
+      if (document.hidden || $$(".fflower", layer).length > 22) return;
+      const f = makeFlower("fflower", Math.random() < .55 ? "petal" : "bloom");
+      f.style.cssText = `left:${(Math.random() * 100).toFixed(1)}vw;font-size:${(12 + Math.random() * 16).toFixed(0)}px;animation-duration:${(9 + Math.random() * 8).toFixed(1)}s;--drift:${(Math.random() * 160 - 80).toFixed(0)}px;--o:${(.55 + Math.random() * .4).toFixed(2)};--sway:${(2.5 + Math.random() * 2).toFixed(1)}s;--spin:${(Math.random() < .5 ? -1 : 1) * (180 + Math.random() * 360) | 0}deg`;
+      f.addEventListener("animationend", e => { if (e.target === f) f.remove(); });
+      layer.append(f);
+    };
+    for (let i = 0; i < 6; i++) setTimeout(spawn, i * 250);
+    flowerTimer = setInterval(spawn, 600);
+  }
+  function bloom(x, y) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const layer = $("#hearts");
+    for (let i = 0; i < 9; i++) {
+      const f = makeFlower("bflower", i % 3 ? "petal" : "bloom");
+      const a = (i / 9) * Math.PI * 2 + Math.random() * .5, dist = 40 + Math.random() * 60;
+      f.style.cssText = `left:${x}px;top:${y}px;--x:${Math.cos(a) * dist}px;--y:${Math.sin(a) * dist + 20}px;--r:${Math.random() * 360 | 0}deg;font-size:${12 + Math.random() * 10}px`;
+      f.addEventListener("animationend", () => f.remove());
+      layer.append(f);
+    }
+  }
+  document.addEventListener("pointerdown", e => {
+    if (!S().flowers || editing || e.target.closest("button, a, input, select, textarea, label, dialog, .music")) return;
+    bloom(e.clientX, e.clientY);
+  });
 
   /* ---------- Tim bay ---------- */
   let heartTimer = null;
@@ -585,6 +631,7 @@
             <h4>Lãng mạn một chút</h4>
             ${sw(["surprise", "Chế độ bất ngờ", "Giấu các hoạt động chưa tới giờ. Người ấy chỉ thấy “Bất ngờ” cho tới đúng giờ (vẫn có nút hé lộ sớm). Khi bạn đang chỉnh sửa thì vẫn thấy hết."])}
             ${sw(["hearts", "Tim bay lơ lửng", "Hiệu ứng trái tim nhẹ nhàng bay trên nền trang"])}
+            ${sw(["flowers", "Hoa rơi", "Hoa anh đào và cánh hoa rơi lả tả, chạm vào trang sẽ nở một chùm hoa"])}
           </section>
 
           <section class="set-group" id="setMusic">
@@ -1080,6 +1127,12 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
     if (on) toast("Đang chỉnh sửa — thay đổi tự lưu trên trình duyệt này");
   }
   $("#editBtn").addEventListener("click", () => setEditing(!editing));
+  /* ---------- Đăng xuất ---------- */
+  if (window.LoveAuth && LoveAuth.enabled()) {
+    $("#logoutBtn").hidden = false;
+    $("#logoutBtn").addEventListener("click", () => { LoveAuth.logout(); location.replace("login.html"); });
+  }
+
   $("#themeBtn").addEventListener("click", () => {
     const root = document.documentElement;
     const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;

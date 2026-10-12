@@ -13,6 +13,14 @@ Website tĩnh (HTML/CSS/JS thuần, không cần build) để lên kế hoạch 
 - **Checklist hành lý** lưu trên trình duyệt
 - Giao diện **sáng/tối**, **responsive** trên điện thoại, **in / lưu PDF** gọn gàng, hỗ trợ bàn phím
 
+## Trang đăng nhập 🔐
+
+Mở web sẽ gặp `login.html` trước, nhập đúng mật khẩu mới vào được lịch trình (máy đó sẽ nhớ, không phải nhập lại). Nút **Đăng xuất** nằm trên thanh trên cùng.
+
+Đổi mật khẩu / gợi ý / lời chào trong `data.js` → mục `login`. Đổi mật khẩu thì mọi máy phải nhập lại. Tắt hẳn: `enabled: false`.
+
+> Đây chỉ là "cửa" cho người lạ khỏi mở nhầm. Web tĩnh không có máy chủ nên ai mở mã nguồn `data.js` vẫn đọc được nội dung và mật khẩu.
+
 ## Cài đặt hiển thị ⚙️
 
 Bấm nút **bánh răng** để mở bảng cài đặt. Mọi thay đổi áp dụng ngay và được lưu cùng kế hoạch (nên cũng đi theo **Chia sẻ link** và **Tải data.js**).
