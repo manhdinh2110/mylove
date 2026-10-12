@@ -723,3 +723,7 @@ body.editing .music { bottom: 88px; }
 .music.bg[data-state="closed"] .music__panel { display: block; position: fixed; left: 0; bottom: 0; width: 240px; padding: 0; margin: 0; opacity: .01; pointer-events: none; z-index: -1; overflow: hidden; }
 .music.bg[data-state="closed"] .music__panel > :not(.music__video) { display: none; }
 .music.bg[data-state="closed"] .music__video { display: block; margin: 0; }
+
+/* Safari (iPhone) thêm padding mặc định cho <button> → icon trong nút tròn bị lệch */
+.icon-btn, .music__fab, .music__play, .field button, .gate__music { padding: 0; -webkit-appearance: none; appearance: none; }
+:where(.icon-btn, .music__fab, .music__play, .stop__dot, .gate__music) svg { display: block; flex: none; }
