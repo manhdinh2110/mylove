@@ -1220,7 +1220,6 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
           data = normalize(v);
           store.set(KEY, { base: BASE, savedAt: Date.now(), data });
           render();
-          toast("Lịch trình vừa được cập nhật từ máy kia ♥");
         } else if (part === "check" && Array.isArray(v)) {
           checked.clear(); v.forEach(k => checked.add(k));
           store.set("checklist", v); renderChecklist(); revealIn($("#checklist"));

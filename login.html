@@ -12,11 +12,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261015" />
-  <script src="assets/js/data.js?v=20261015"></script>
-  <script src="assets/js/cloud-config.js?v=20261015"></script>
-  <script src="assets/js/cloud.js?v=20261015"></script>
-  <script src="assets/js/auth.js?v=20261015"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20261016" />
+  <script src="assets/js/data.js?v=20261016"></script>
+  <script src="assets/js/cloud-config.js?v=20261016"></script>
+  <script src="assets/js/cloud.js?v=20261016"></script>
+  <script src="assets/js/auth.js?v=20261016"></script>
   <script>
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     document.documentElement.dataset.accent = (window.LOVE_DATA && LOVE_DATA.settings && LOVE_DATA.settings.accent) || "rose";
@@ -87,8 +87,23 @@
     @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
     .gate.open { animation: gateOut .8s .35s cubic-bezier(.6,0,.4,1) forwards; }
     @keyframes gateOut { to { opacity: 0; transform: scale(1.06); filter: blur(4px); } }
+    .lovecount {
+      margin: -8px 0 24px; padding: 14px 10px 12px; border-radius: 18px;
+      background: linear-gradient(140deg, var(--accent-soft), color-mix(in srgb, var(--gold) 12%, var(--surface)));
+      border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+    }
+    .lovecount__label { font-size: .74rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .lovecount__grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; }
+    .lovecount__grid div { display: flex; flex-direction: column; align-items: center; }
+    .lovecount__grid div + div { border-left: 1px dashed color-mix(in srgb, var(--accent) 25%, transparent); }
+    .lovecount__grid span { font: 700 clamp(1.4rem, 6vw, 1.75rem)/1.1 var(--serif); font-variant-numeric: tabular-nums; color: var(--ink); }
+    .lovecount__grid div:first-child span { color: var(--accent); }
+    .lovecount__grid small { font-size: .68rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+    #lcS { display: inline-block; }
+    #lcS.tick { animation: lcTick .4s ease-out; }
+    @keyframes lcTick { from { transform: scale(1.18); color: var(--accent); } }
     .gate__foot { margin-top: 22px; font-size: .78rem; color: var(--ink-soft); letter-spacing: .04em; }
-    @media (prefers-reduced-motion: reduce) { .gate, .gate h1 em, .gate__heart svg { animation: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .gate, .gate h1 em, .gate__heart svg { animation: none !important; } #lcS.tick { animation: none; } }
   </style>
 </head>
 <body>
@@ -102,6 +117,16 @@
     <p class="eyebrow" id="gateNames">Hai ta</p>
     <h1 id="gateTitle">Chào <em>em</em></h1>
     <p class="gate__sub" id="gateSub">Có một hành trình nhỏ đang chờ em ở phía sau cánh cửa này.</p>
+
+    <div class="lovecount" id="loveCount" hidden>
+      <p class="lovecount__label">Mình đã bên nhau</p>
+      <div class="lovecount__grid">
+        <div><span id="lcD">0</span><small>ngày</small></div>
+        <div><span id="lcH">00</span><small>giờ</small></div>
+        <div><span id="lcM">00</span><small>phút</small></div>
+        <div><span id="lcS">00</span><small>giây</small></div>
+      </div>
+    </div>
 
     <form id="gateForm" autocomplete="off" novalidate>
       <label for="pw">Mật khẩu</label>
@@ -141,6 +166,22 @@
     if (L.welcome) $("gateSub").textContent = L.welcome;
     if (L.hint) { $("hintBox").hidden = false; $("hintText").textContent = L.hint; }
     $("gateFoot").textContent = "Chỉ dành riêng cho " + you + " ♥";
+
+    // Đếm thời gian bên nhau, tính từ 0h ngày couple.since (giờ Việt Nam)
+    const since = /^\d{4}-\d{2}-\d{2}$/.test(C.since || "") ? Date.parse(C.since + "T00:00:00+07:00") : NaN;
+    if (!isNaN(since)) {
+      $("loveCount").hidden = false;
+      const pad = n => String(n).padStart(2, "0");
+      const tickLove = () => {
+        const t = Math.max(0, Math.floor((Date.now() - since) / 1000));
+        $("lcD").textContent = Math.floor(t / 86400).toLocaleString("vi-VN");
+        $("lcH").textContent = pad(Math.floor(t / 3600) % 24);
+        $("lcM").textContent = pad(Math.floor(t / 60) % 60);
+        const s = $("lcS"); s.textContent = pad(t % 60);
+        s.classList.remove("tick"); void s.offsetWidth; s.classList.add("tick");
+      };
+      tickLove(); setInterval(tickLove, 1000);
+    }
 
     $("hintBtn").addEventListener("click", e => {
       const open = $("hintText").hidden;
