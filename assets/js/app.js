@@ -826,7 +826,10 @@
       kind = src.kind; stopOther(kind);
       if (kind === "audio") {
         if (audio.src !== new URL(src.src, location.href).href) audio.src = src.src;
-        try { await audio.play(); } catch (e) { onFail(i, "Trình duyệt chưa cho phát — bấm nút phát lần nữa", false); }
+        try { await audio.play(); } catch (e) {
+          if (bg) return setPlaying(false); // phát ngầm bị chặn → im lặng chờ lần chạm đầu tiên
+          onFail(i, "Trình duyệt chưa cho phát — bấm nút phát lần nữa", false);
+        }
         return;
       }
       $("#musicVideo").hidden = false;
@@ -1239,12 +1242,16 @@ window.LOVE_DATA = ${JSON.stringify(data, null, 2)};
     try { afterLogin = sessionStorage.getItem("playAfterLogin"); sessionStorage.removeItem("playAfterLogin"); } catch {}
     const loginSong = afterLogin && S().music ? data.music.songs.findIndex(x => (x.title || "").toLowerCase().includes(afterLogin.toLowerCase())) : -1;
     if (loginSong >= 0) {
-      const evs = ["pointerdown", "keydown"];
-      const go = () => { evs.forEach(ev => document.removeEventListener(ev, go)); if (!player.playing) player.playIndex(loginSong, true); };
+      // click/touchend: iPhone chỉ cho phát nhạc trong 2 sự kiện này (pointerdown không tính)
+      const evs = ["click", "touchend", "keydown"];
+      const go = e => {
+        if (e?.target?.closest?.("#music")) return; // bấm vào trình phát thì để trình phát tự xử lý
+        evs.forEach(ev => document.removeEventListener(ev, go, true));
+        if (!player.playing) player.playIndex(loginSong, true);
+      };
       player.playIndex(loginSong, true);
-      // Trình duyệt thường chặn tự phát có tiếng → phát ngay ở lần chạm đầu tiên
-      if (player.playable().includes(loginSong)) evs.forEach(ev => document.addEventListener(ev, go));
-      setTimeout(() => { if (!player.playing && player.playable().includes(loginSong)) toast(`♪ Chạm để nghe “${data.music.songs[loginSong].title}”`, { label: "Phát", fn: go }, 9000); }, 1800);
+      // Trình duyệt thường chặn tự phát có tiếng → lặng lẽ phát ngầm ở lần chạm đầu tiên, không hiện gì
+      if (player.playable().includes(loginSong)) evs.forEach(ev => document.addEventListener(ev, go, true));
     }
     else if (notice) toast(notice[0], notice[1], 8000);
     else if (S().music && S().musicPrompt && player.playable().length)
